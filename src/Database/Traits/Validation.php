@@ -272,7 +272,19 @@ trait Validation
                     $this->validationErrors = new MessageBag;
             }
             else {
-                $this->validationErrors = $validator->messages();
+                $orderedValidationErrors = new MessageBag;
+                $validationErrors = $validator->messages();
+                $validationErrorKeys = $validationErrors->keys();
+                foreach (array_keys($this->attributes) as $attribute) {
+                    foreach ($validationErrorKeys as $messageAttribute) {
+                        if ($messageAttribute === $attribute) {
+                            foreach ($validationErrors->get($attribute) as $message) {
+                                $orderedValidationErrors->add($attribute, $message);
+                            }
+                        }
+                    }
+                }
+                $this->validationErrors = $orderedValidationErrors;
                 if (Input::hasSession()) {
                     Input::flash();
                 }
